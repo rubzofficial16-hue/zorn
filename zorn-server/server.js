@@ -19,8 +19,8 @@ const players = {};
 const rooms = {};
 
 const LIMIT_FILE = path.join(__dirname, 'limit.json');
-const LIMIT_SECONDS = 120 * 60;
-const WARNING_SECONDS = 5 * 60;
+const LIMIT_SECONDS = 120 * 60; // 2 часа
+const WARNING_SECONDS = 5 * 60; // 5 минут
 
 let limitData = { date: new Date().toISOString().slice(0,10), usedSeconds: 0 };
 
@@ -28,14 +28,21 @@ function todayStr(){ return new Date().toISOString().slice(0,10); }
 
 function loadLimit(){
   try{
-    if(fs.existsSync(LIMIT_FILE)) limitData = JSON.parse(fs.readFileSync(LIMIT_FILE, 'utf8'));
-    else { limitData = { date: todayStr(), usedSeconds: 0 }; saveLimit(); }
+    if(fs.existsSync(LIMIT_FILE)) {
+      limitData = JSON.parse(fs.readFileSync(LIMIT_FILE, 'utf8'));
+    } else { 
+      limitData = { date: todayStr(), usedSeconds: 0 }; 
+      saveLimit(); 
+    }
     if(limitData.date !== todayStr()){
       limitData.date = todayStr();
       limitData.usedSeconds = 0;
       saveLimit();
     }
-  }catch(e){ limitData = { date: todayStr(), usedSeconds: 0 }; }
+  }catch(e){ 
+    console.error("Ошибка чтения limit.json, сброс...", e);
+    limitData = { date: todayStr(), usedSeconds: 0 }; 
+  }
 }
 function saveLimit(){
   try{ fs.writeFileSync(LIMIT_FILE, JSON.stringify(limitData, null, 2), 'utf8'); }catch(e){}
@@ -59,7 +66,7 @@ setInterval(() => {
   const left = remainingSeconds();
   if(left === WARNING_SECONDS) io.emit('limitWarning', { secondsLeft: left });
   if(left === 0){
-    io.emit('serverLimitReached', { message: "The server's daily limit has been reached. Join us tomorrow!" });
+    io.emit('serverLimitReached', { message: "Дневной лимит сервера исчерпан. Возвращайтесь завтра!" });
     for(const id in rooms){ io.to(id).emit('roomClosed'); }
     for(const id in rooms){ delete rooms[id]; }
     io.emit('roomsUpdate', []);
@@ -90,12 +97,12 @@ io.on('connection', socket => {
   });
 
   if(isLimitReached()){
-    socket.emit('serverLimitReached', { message: "The server's daily limit has been reached. Join us tomorrow!" });
+    socket.emit('serverLimitReached', { message: "Дневной лимит сервера исчерпан. Возвращайтесь завтра!" });
     return;
   }
 
   socket.on('createRoom', data => {
-    if(isLimitReached()){ socket.emit('serverLimitReached', { message: "Daily limit reached." }); return; }
+    if(isLimitReached()){ socket.emit('serverLimitReached', { message: "Дневной лимит исчерпан." }); return; }
     const id = 'r_' + Date.now() + '_' + Math.floor(Math.random()*1000);
     rooms[id] = {
       id, name: data.name || 'Server', type: data.type || 'public',
@@ -109,7 +116,7 @@ io.on('connection', socket => {
   socket.on('getRooms', () => socket.emit('roomsUpdate', roomsList()));
 
   socket.on('joinRoom', data => {
-    if(isLimitReached()){ socket.emit('serverLimitReached', { message: "Daily limit reached." }); return; }
+    if(isLimitReached()){ socket.emit('serverLimitReached', { message: "Дневной лимит исчерпан." }); return; }
     const room = rooms[data.id];
     if(!room){ socket.emit('joinRoomError', 'Комната не найдена'); return; }
     if(room.players.includes(socket.id)) return;
@@ -182,7 +189,7 @@ app.get('/', (req, res) => {
   res.send('<h1>🎮 Zorn Server</h1><p>Rooms: <b>' + r + '</b></p><p>Used today: <b>' + used + ' / 120</b> min</p><p>Left today: <b>' + left + '</b> min</p>');
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   const ip = getLocalIP();
   console.log('===========================================');
