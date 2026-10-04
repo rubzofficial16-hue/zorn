@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Zorn</title><style>
+<html><head><meta charset="utf-8">
+<title>Zorn</title><style>
 html,body{margin:0;height:100%;background:#87CEEB;font-family:"Courier New",monospace;overflow:hidden;user-select:none}
 #loginScreen{position:fixed;inset:0;background:linear-gradient(180deg,#87CEEB,#5da8d8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
 #loginScreen.hidden{display:none}
@@ -142,9 +143,6 @@ html,body{margin:0;height:100%;background:#87CEEB;font-family:"Courier New",mono
 .other-player .player-message.show{opacity:1}
 </style></head><body>
 
-<audio id="sndJump" src="jump.mp3" preload="auto"></audio>
-<audio id="sndMenu" src="bg%20music.mp3" preload="auto" loop></audio>
-
 <div id="loginScreen">
   <h1 class="login-title" data-t="welcome">Welcome to Zorn!</h1>
   <div class="login-box"><hr>
@@ -277,5 +275,6 @@ html,body{margin:0;height:100%;background:#87CEEB;font-family:"Courier New",mono
 <input type="file" id="avatarFileInput" accept="image/*" style="display:none">
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="sounds.js"></script>
 <script src="zorn.js"></script>
 </body></html>
