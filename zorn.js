@@ -2,13 +2,9 @@
 // ===== ZORN — Multiplayer + Single + лимит =====
 // ============================================================
 
-// ============================================================
-// ===== АВТОМАТИЧЕСКОЕ ОПРЕДЕЛЕНИЕ URL СЕРВЕРА =====
-// ============================================================
 let SERVER_URL = 'http://localhost:3000';
 
 if (window.location.hostname.includes('neocities.org')) {
-    // ⚠️⚠️⚠️ ЗАМЕНИ НА СВОЮ ССЫЛКУ ИЗ CODESPACES! ⚠️⚠️⚠️
     SERVER_URL = 'https://obscure-guide-5vrj59v5wq54cv6qr-3000.app.github.dev';
 } else if (window.location.hostname.includes('github.dev')) {
     SERVER_URL = window.location.origin;
@@ -17,7 +13,6 @@ if (window.location.hostname.includes('neocities.org')) {
 }
 
 console.log('🔗 Подключение к серверу:', SERVER_URL);
-// ============================================================
 
 let socket = null;
 let socketReady = false;
@@ -36,11 +31,9 @@ function saveAccounts(a){localStorage.setItem('zorn_accounts',JSON.stringify(a))
 function showLimitWindow(title, text, showOK){
   const old = document.getElementById('limitOverlay');
   if(old) old.remove();
-
   const overlay = document.createElement('div');
   overlay.id = 'limitOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:"Courier New",monospace;padding:40px;text-align:center;';
-
   let html = '<h1 style="font-size:56px;margin:0 0 24px;letter-spacing:6px;">' + title + '</h1>';
   html += '<div style="width:460px;max-width:90%;border-top:2px solid #fff;margin-bottom:30px;"></div>';
   html += '<p style="font-size:20px;max-width:560px;margin:0 0 30px;line-height:1.5;">' + text + '</p>';
@@ -48,20 +41,19 @@ function showLimitWindow(title, text, showOK){
     html += '<button onclick="location.reload()" style="font-family:inherit;font-size:18px;padding:12px 36px;background:#fff;color:#000;border:none;border-radius:8px;cursor:pointer;">OK</button>';
   }
   overlay.innerHTML = html;
-
   document.body.appendChild(overlay);
+  if(typeof playWarningSound === 'function') playWarningSound();
 }
 
 function showLimitWarning(secondsLeft){
   const old = document.getElementById('limitWarning');
   if(old) old.remove();
-
   const w = document.createElement('div');
   w.id = 'limitWarning';
   w.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#c43b3b;color:#fff;padding:14px 28px;border-radius:10px;font-family:"Courier New",monospace;font-size:16px;font-weight:bold;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,.4);';
   w.textContent = '⚠️ Осталось ' + Math.ceil(secondsLeft / 60) + ' мин до дневного лимита';
   document.body.appendChild(w);
-
+  if(typeof playWarningSound === 'function') playWarningSound();
   setTimeout(() => { if(w) w.remove(); }, 10000);
 }
 
@@ -75,32 +67,23 @@ function connectToServer(){
       socketReady = true;
       console.log('✅ Сервер подключён:', SERVER_URL);
     });
-    socket.on('connect_error', (err) => { 
-      socketReady = false; 
+    socket.on('connect_error', (err) => {
+      socketReady = false;
       console.log('❌ Ошибка подключения:', err.message);
     });
     socket.on('disconnect', () => { socketReady = false; });
 
-    // ==== ЛИМИТ ====
-    socket.on('limitStatus', data => {
-      // Сразу знаем, сколько осталось
-    });
-
-    socket.on('limitWarning', data => {
-      showLimitWarning(data.secondsLeft);
-    });
-
+    socket.on('limitStatus', data => {});
+    socket.on('limitWarning', data => { showLimitWarning(data.secondsLeft); });
     socket.on('serverLimitReached', data => {
       showLimitWindow('Disconnection', data.message || "The server's daily limit has been reached. Join us tomorrow!", true);
       if(socket) socket.disconnect();
     });
-
     socket.on('limitReset', () => {
       const old = document.getElementById('limitOverlay');
       if(old) old.remove();
     });
 
-    // ==== КОМНАТЫ ====
     socket.on('roomsUpdate', list => renderServerList(list));
     socket.on('roomCreated', data => {
       currentRoomId = data.id;
@@ -147,6 +130,7 @@ function connectToServer(){
         cb.scrollTop = cb.scrollHeight;
       }
       if(!chatWindow.classList.contains('show')) showUnreadDot();
+      if(typeof playChatSound === 'function') playChatSound();
       if(currentUser && data.name === currentUser.username){
         showSelfMessage(data.text);
       } else {
@@ -200,10 +184,7 @@ const chatInput=document.getElementById('chatInput');
 const DEFAULT_AVATAR='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="%233b82c4"/><circle cx="20" cy="15" r="7" fill="%23ffffff"/><ellipse cx="20" cy="34" rx="13" ry="9" fill="%23ffffff"/></svg>';
 function getAvatarFor(u){const a=loadAccounts();if(a[u]&&a[u].avatar)return a[u].avatar;return DEFAULT_AVATAR}
 
-const sndMenu=document.getElementById('sndMenu');sndMenu.volume=.35;
-function startMenuMusic(){try{sndMenu.volume=.35;sndMenu.play().catch(()=>{})}catch(e){}}
-function stopMenuMusic(){try{sndMenu.pause();sndMenu.currentTime=0}catch(e){}}
-
+// ===== ПЕРЕВОДЫ =====
 const TRANSLATIONS = {
   en:{flag:'🇺🇸',name:'USA',welcome:'Welcome to Zorn!',login:'Log in',register:'Register',username:'Username',password:'Password',name:'Name',remember:'Remember Me',forgot:'Forgot your password?',play:'Play',friends:'Friends',catalog:'Catalog',workshop:'Workshop',hint:'More to come soon',profile:'Profile',logout:'Log out',bio:'Bio',back:'Back',save:'Save',recovery:'Password recovery',enterUsername:'Enter your username',cancel:'Cancel',find:'Find',pause:'PAUSE',players:'PLAYERS',backToMenu:'Back to menu',continue:'Continue',chat:'Chat',send:'Send',chooseLang:'Choose language',placeholderMsg:'Message...',single:'Single Player',multi:'Multiplayer',myServers:'SERVERS',joinBtn:'Join',chooseMode:'Choose mode',noServers:'No servers. Click + to create.',serverOffline:'Server offline'},
   ru:{flag:'🇷🇺',name:'Русский',welcome:'Добро пожаловать в Zorn!',login:'Вход',register:'Регистрация',username:'Имя пользователя',password:'Пароль',name:'Имя',remember:'Запомнить меня',forgot:'Забыли пароль?',play:'Играть',friends:'Друзья',catalog:'Каталог',workshop:'Мастерская',hint:'Скоро больше',profile:'Профиль',logout:'Выйти',bio:'О себе',back:'Назад',save:'Сохранить',recovery:'Восстановление пароля',enterUsername:'Введите ваш Username',cancel:'Отмена',find:'Найти',pause:'ПАУЗА',players:'ИГРОКИ',backToMenu:'В меню',continue:'Продолжить',chat:'Чат',send:'Отправить',chooseLang:'Выбор языка',placeholderMsg:'Сообщение...',single:'Одиночная игра',multi:'Мультиплеер',myServers:'СЕРВЕРА',joinBtn:'Войти',chooseMode:'Выбор режима',noServers:'Серверов нет. Нажми + чтобы создать.',serverOffline:'Сервер выключен'}
@@ -240,6 +221,7 @@ function renderLangList(){
   });
 }
 
+// ===== ВАЛИДАЦИЯ ФОРМ =====
 function checkLoginValid(){
   const u = loginUsername.value.trim().length >= 3;
   const p = loginPassword.value.length >= 8;
@@ -258,6 +240,7 @@ regUsername.addEventListener('input',()=>{checkRegisterValid();registerError.tex
 regPassword.addEventListener('input',()=>{checkRegisterValid();registerError.textContent=''});
 setInterval(()=>{checkLoginValid();checkRegisterValid()},300);
 
+// ===== РЕГИСТРАЦИЯ =====
 registerBtn.addEventListener('click',()=>{
   const n=regName.value.trim(), u=regUsername.value.trim(), p=regPassword.value;
   const acc = loadAccounts();
@@ -270,10 +253,12 @@ registerBtn.addEventListener('click',()=>{
   saveAccounts(acc);
   registerError.style.color = '#2a9d3f';
   registerError.textContent = 'Account created! You can log in now.';
+  if(typeof playMenuSound === 'function') playMenuSound();
   setTimeout(()=>{ registerError.textContent=''; registerError.style.color='#d32f2f'; }, 2500);
   regName.value=''; regUsername.value=''; regPassword.value=''; checkRegisterValid();
 });
 
+// ===== ВХОД =====
 loginBtn.addEventListener('click',()=>{
   const u=loginUsername.value.trim(), p=loginPassword.value;
   const acc = loadAccounts();
@@ -284,9 +269,11 @@ loginBtn.addEventListener('click',()=>{
   else localStorage.removeItem('zorn_remember');
   localStorage.setItem('zorn_current', JSON.stringify({ username: u, password: p }));
   currentUser = { username: u, name: acc[u].name || u, bio: acc[u].bio || '', avatar: acc[u].avatar || '' };
+  if(typeof playMenuSound === 'function') playMenuSound();
   goToMainMenu();
 });
 
+// ===== ВОССТАНОВЛЕНИЕ ПАРОЛЯ =====
 (function(){
   const s = localStorage.getItem('zorn_remember');
   if(s){ try{ const d = JSON.parse(s); loginUsername.value = d.username || ''; loginPassword.value = d.password || ''; rememberMe.checked = true; }catch(e){} }
@@ -303,6 +290,7 @@ forgotSend.addEventListener('click',()=>{
   recoveryResult.classList.add('show');
 });
 
+// ===== СПИСОК ИГРОКОВ =====
 function renderPlayersList(){
   if(!playersList) return;
   playersList.innerHTML = '';
@@ -330,16 +318,20 @@ function renderPlayersList(){
     playersList.appendChild(row);
   });
 }
+
+// ===== НАВИГАЦИЯ =====
 function goToMainMenu(){
   loginScreen.classList.add('hidden'); profileScreen.classList.remove('show');
   mainMenu.classList.add('show'); accountMenu.classList.remove('show');
   menuUser.textContent = currentUser ? currentUser.username : 'guest';
   menuAvatar.style.backgroundImage = 'url("' + getAvatarFor(currentUser ? currentUser.username : '') + '")';
-  renderPlayersList(); startMenuMusic();
+  renderPlayersList();
+  if(typeof startMenuMusic === 'function') startMenuMusic();
 }
 function goToLogin(){
   mainMenu.classList.remove('show'); profileScreen.classList.remove('show'); accountMenu.classList.remove('show');
-  loginScreen.classList.remove('hidden'); stopMenuMusic();
+  loginScreen.classList.remove('hidden');
+  if(typeof stopMenuMusic === 'function') stopMenuMusic();
 }
 function exitToMainMenu(){
   inGame = false; multiplayerMode = false; currentRoomId = null; currentRoomIsHost = false;
@@ -351,6 +343,7 @@ function exitToMainMenu(){
   goToMainMenu();
 }
 
+// ===== ПРОФИЛЬ =====
 userBadge.addEventListener('click', function(e){ e.stopPropagation(); e.preventDefault(); accountMenu.classList.toggle('show'); });
 document.addEventListener('click', function(e){
   if(accountMenu.classList.contains('show')){
@@ -407,8 +400,10 @@ avatarFileInput.addEventListener('change', function(e){
   r.readAsDataURL(f);
 });
 
+// ===== КНОПКА PLAY =====
 document.getElementById('btnPlay').addEventListener('click', function(){
-  mainMenu.classList.remove('show'); stopMenuMusic();
+  mainMenu.classList.remove('show');
+  if(typeof stopMenuMusic === 'function') stopMenuMusic();
   document.getElementById('mpScreen').classList.add('show');
   renderModeChoice();
 });
@@ -500,7 +495,8 @@ function renderServerList(list){
 document.getElementById('mpBack').addEventListener('click', function(){
   if(inGame){ exitToMainMenu(); return; }
   document.getElementById('mpScreen').classList.remove('show');
-  mainMenu.classList.add('show'); startMenuMusic();
+  mainMenu.classList.add('show');
+  if(typeof startMenuMusic === 'function') startMenuMusic();
 });
 
 document.getElementById('mpCreateBtn').addEventListener('click', function(){
@@ -526,7 +522,7 @@ document.getElementById('createConfirm').addEventListener('click', function(){
 });
 
 function startSinglePlayer(){
-  stopMenuMusic();
+  if(typeof stopMenuMusic === 'function') stopMenuMusic();
   multiplayerMode = false;
   currentRoomId = null;
   clearOtherPlayers();
@@ -544,7 +540,7 @@ function startSinglePlayer(){
 }
 
 function enterGame(){
-  stopMenuMusic();
+  if(typeof stopMenuMusic === 'function') stopMenuMusic();
   multiplayerMode = true;
   clearOtherPlayers();
   document.getElementById('mpScreen').classList.remove('show');
@@ -565,8 +561,8 @@ document.getElementById('game').style.display='none';
 document.getElementById('ground').style.display='none';
 document.getElementById('hud').style.display='none';
 
-const sndJump=document.getElementById('sndJump'); sndJump.volume=.5;
-function playSound(el){try{el.currentTime=0;el.play().catch(()=>{})}catch(e){}}
+// ===== ФИЗИКА И ИГРОК =====
+function playSound(el){ /* заглушка, звуки теперь через sounds.js */ }
 const worldEl=document.getElementById('world'); const playerEl=document.getElementById('player');
 const PW=60,PH=60; let px=0,py=60,vx=0,vy=0,onGround=true,alive=true,rotation=0;
 const SPEED=5,GRAVITY=.8,JUMP=-15,MAX_FALL=20;
@@ -583,7 +579,8 @@ document.addEventListener('keydown',e=>{
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyS','KeyA','KeyD'].includes(e.code))e.preventDefault();
   if(e.repeat)return; keys[e.code]=true;
   if((e.code==='KeyW'||e.code==='ArrowUp'||e.code==='Space')&&alive&&onGround){
-    vy=JUMP; onGround=false; playSound(sndJump);
+    vy=JUMP; onGround=false;
+    if(typeof playJumpSound === 'function') playJumpSound();
     if(vx>0)rotation+=90; else if(vx<0)rotation-=90;
     playerEl.style.transform='rotate('+rotation+'deg)';
   }
@@ -635,6 +632,7 @@ function update(){
   requestAnimationFrame(update);
 }
 
+// ===== МЕНЮ ПАУЗЫ =====
 const powerMenu=document.getElementById('powerMenu');
 document.getElementById('iconPower').addEventListener('click', function(){renderPlayersList(); powerMenu.classList.add('show')});
 document.getElementById('powerClose').addEventListener('click',()=>powerMenu.classList.remove('show'));
@@ -644,6 +642,7 @@ document.getElementById('powerBackToMenu').addEventListener('click', function(){
   exitToMainMenu();
 });
 
+// ===== ЧАТ =====
 document.getElementById('iconChat').addEventListener('click', function(){
   chatWindow.classList.toggle('show');
   if(chatWindow.classList.contains('show')) hideUnreadDot();
@@ -667,6 +666,7 @@ function sendChat(){
 document.getElementById('chatSend').addEventListener('click',sendChat);
 chatInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
 
+// ===== СООБЩЕНИЯ НАД ИГРОКОМ =====
 function showSelfMessage(text){
   if(!selfMessage.el){
     selfMessage.el = document.createElement('div');
@@ -753,6 +753,7 @@ function hideUnreadDot(){
   if(dot) dot.classList.remove('show');
 }
 
+// ===== АВТО-ВХОД =====
 (function(){
   const saved = localStorage.getItem('zorn_current');
   if(!saved) return;
@@ -771,6 +772,7 @@ function hideUnreadDot(){
   }catch(e){}
 })();
 
+// ===== СТАРТ =====
 renderLangList(); applyLang();
 checkLoginValid(); checkRegisterValid();
 connectToServer();
