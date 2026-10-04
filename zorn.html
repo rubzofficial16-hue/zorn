@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Zorn</title><style>
+html,body{margin:0;height:100%;background:#87CEEB;font-family:"Courier New",monospace;overflow:hidden;user-select:none}
+#loginScreen{position:fixed;inset:0;background:linear-gradient(180deg,#87CEEB,#5da8d8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+#loginScreen.hidden{display:none}
+.login-title{font-size:48px;color:#fff;text-shadow:2px 2px 0 #4a4a4a;letter-spacing:2px;margin:0}
+.login-box{width:720px;background:rgba(255,255,255,.95);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden;margin-top:24px}
+.login-box hr{border:none;border-top:2px solid #4a4a4a;margin:0}
+.panels{display:flex;min-height:340px}
+.panel{flex:1;padding:24px;display:flex;flex-direction:column;gap:8px}
+.panel+.panel{border-left:2px solid #4a4a4a}
+.panel h2{margin:0 0 8px;color:#2c2c2c;font-size:22px}
+.panel label{font-size:12px;color:#555;margin-top:4px}
+.panel input{font-family:inherit;font-size:14px;padding:8px 10px;border:2px solid #ccc;border-radius:6px;outline:none}
+.panel input:focus{border-color:#2a9d3f}
+.checkbox-row{display:flex;align-items:center;gap:6px;font-size:13px;color:#333;margin-top:6px}
+.btn{font-family:inherit;font-size:15px;padding:10px;border:none;border-radius:8px;background:#2a9d3f;color:#fff;cursor:pointer;margin-top:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+#registerBtn{background:#3b82c4}
+.error-msg{color:#d32f2f;font-size:13px;min-height:18px;margin-top:6px;text-align:center;font-weight:bold}
+.forgot{margin-top:auto;font-size:12px;color:#777;text-align:center;text-decoration:underline;cursor:pointer}
+#forgotModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+#forgotModal.show{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:24px;width:380px}
+.modal-box h3{margin:0 0 12px;font-size:20px}
+.modal-box input{width:100%;box-sizing:border-box;font-family:inherit;font-size:14px;padding:8px;border:2px solid #ccc;border-radius:6px;margin-top:6px;outline:none}
+.modal-actions{display:flex;gap:8px;margin-top:16px}
+.modal-actions button{flex:1;font-family:inherit;font-size:14px;padding:9px;border:none;border-radius:8px;cursor:pointer}
+.primary{background:#3b82c4;color:#fff}.secondary{background:#eee;color:#333}
+#recoveryResult{margin-top:14px;font-size:13px;color:#333;background:#f6f6f6;border-radius:8px;padding:10px;display:none;white-space:pre-wrap}
+#recoveryResult.show{display:block}
+#mainMenu{position:fixed;inset:0;background:linear-gradient(180deg,#87CEEB,#5da8d8);display:none;z-index:90}
+#mainMenu.show{display:block}
+.menu-title{position:absolute;top:50px;left:50%;transform:translateX(-50%);font-size:80px;font-weight:bold;color:#fff;letter-spacing:14px;text-shadow:3px 3px 0 #3b82c4,6px 6px 12px rgba(0,0,0,.35);margin:0}
+.menu-buttons{position:absolute;left:80px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:14px}
+.menu-btn{font-family:inherit;font-size:22px;font-weight:bold;letter-spacing:2px;color:#fff;background:#3b82c4;border:3px solid #fff;border-radius:14px;padding:14px 45px;min-width:280px;text-align:left;cursor:pointer;box-shadow:0 6px 0 #2a5c8e}
+.menu-btn:hover{background:#4a92d4;transform:translateY(-2px)}
+.menu-hint{position:absolute;bottom:30px;width:100%;text-align:center;color:rgba(255,255,255,.75);font-size:14px}
+#cornerBtns{position:absolute;bottom:24px;right:24px;display:flex;gap:10px;z-index:93}
+.corner-btn{width:56px;height:56px;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer}
+#langMenu{display:none;position:absolute;bottom:92px;right:24px;width:280px;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.35);z-index:94;overflow:hidden}
+#langMenu.show{display:block}
+#langMenu h4{margin:0;padding:12px 16px;font-size:15px;color:#2c2c2c;border-bottom:1px solid #eee;text-align:center}
+#langList{max-height:320px;overflow-y:auto}
+.lang-row{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#333;cursor:pointer;border-bottom:1px solid #f2f2f2}
+.lang-row:hover{background:#f4f4f4}
+.lang-row.active{background:rgba(59,130,196,.15);font-weight:bold}
+.lang-row .flag{font-size:20px}
+#userBadge{position:absolute;top:24px;right:30px;display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.25);padding:6px 14px 6px 6px;border-radius:12px;cursor:pointer;color:#fff;font-size:16px;z-index:92}
+.avatar{width:40px;height:40px;border-radius:0;background:#3b82c4 center/cover;border:2px solid #fff;flex-shrink:0}
+#accountMenu{display:none;position:absolute;top:80px;right:30px;width:200px;background:#fff;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.3);z-index:95;padding:6px}
+#accountMenu.show{display:block}
+#accountMenu button{display:block;width:100%;font-family:inherit;font-size:15px;padding:11px 14px;text-align:left;border:none;border-radius:8px;background:none;cursor:pointer;color:#2c2c2c}
+#accountMenu button:hover{background:#f0f0f0}
+#accountMenu button.danger{color:#fff;background:#c43b3b;margin-top:4px}
+#profileScreen{display:none;position:fixed;inset:0;background:linear-gradient(180deg,#87CEEB,#5da8d8);z-index:96;overflow-y:auto}
+#profileScreen.show{display:block}
+.profile-container{max-width:560px;margin:60px auto;background:rgba(255,255,255,.95);border-radius:18px;padding:30px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.profile-header{display:flex;align-items:center;gap:20px;margin-bottom:24px}
+.avatar-big{width:120px;height:120px;border-radius:0;background:#3b82c4 center/cover;border:3px solid #3b82c4;flex-shrink:0;cursor:pointer}
+.profile-header-info{flex:1}
+.profile-label{font-size:12px;color:#777;margin-bottom:4px}
+.profile-name-input{font-family:inherit;font-size:22px;font-weight:bold;border:2px solid transparent;background:#f4f4f4;padding:8px 12px;border-radius:8px;width:100%;box-sizing:border-box;outline:none}
+.profile-username{font-size:15px;color:#3b82c4;margin-top:8px}
+.profile-bio{font-family:inherit;font-size:14px;border:2px solid #ddd;background:#f4f4f4;padding:12px;border-radius:10px;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;outline:none;margin-top:8px}
+.profile-actions{display:flex;gap:10px;margin-top:22px}
+.profile-actions button{flex:1;font-family:inherit;font-size:15px;padding:12px;border:none;border-radius:10px;cursor:pointer}
+.profile-actions .save{background:#2a9d3f;color:#fff}
+.profile-actions .back{background:#ddd;color:#333}
+#mpScreen{display:none;position:fixed;inset:0;background:linear-gradient(180deg,#87CEEB,#5da8d8);z-index:97}
+#mpScreen.show{display:block}
+.mp-header{position:absolute;top:24px;left:24px;right:24px;display:flex;align-items:center;gap:16px}
+.mp-back{background:#fff;color:#2c2c2c;border:none;font-family:inherit;font-size:15px;padding:10px 18px;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.mp-title{font-size:36px;color:#fff;letter-spacing:6px;font-weight:bold;text-shadow:2px 2px 0 #3b82c4;flex:1;text-align:center;margin:0}
+.mp-create{width:56px;height:56px;background:#2a9d3f;color:#fff;border:3px solid #fff;border-radius:14px;font-size:32px;font-weight:bold;cursor:pointer;box-shadow:0 6px 0 #1e7530;display:flex;align-items:center;justify-content:center}
+.mp-search{position:absolute;top:100px;left:50%;transform:translateX(-50%);width:600px;max-width:80%;box-sizing:border-box;font-family:inherit;font-size:15px;padding:12px 18px;border:2px solid #ccc;border-radius:12px;outline:none}
+.mp-list{position:absolute;top:170px;left:50%;transform:translateX(-50%);width:600px;max-width:80%;bottom:24px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.mp-item{background:#fff;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.mp-item.my-server{border:3px solid #2a9d3f}
+.mp-item-icon{width:44px;height:44px;border-radius:10px;background:#3b82c4;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:bold;flex-shrink:0}
+.mp-item.my-server .mp-item-icon{background:#2a9d3f}
+.mp-item-info{flex:1;min-width:0}
+.mp-item-name{font-size:17px;font-weight:bold;color:#2c2c2c;margin:0 0 4px}
+.mp-item-meta{font-size:12px;color:#777}
+.mp-item-players{font-size:14px;color:#3b82c4;font-weight:bold}
+.mp-item-actions{display:flex;gap:8px;flex-shrink:0}
+.mp-btn{font-family:inherit;font-size:14px;padding:9px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+.mp-btn.join{background:#3b82c4;color:#fff}
+.mp-section-title{color:#fff;font-size:16px;font-weight:bold;letter-spacing:2px;margin:14px 0 8px;text-align:center;text-shadow:1px 1px 0 #3b82c4}
+#createModal,#editModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center}
+#createModal.show,#editModal.show{display:flex}
+.create-box{background:#fff;border-radius:18px;padding:28px 32px;width:440px}
+.create-box h3{margin:0 0 20px;font-size:24px;color:#2c2c2c;text-align:center}
+.create-box label{font-size:13px;color:#555;display:block;margin-bottom:6px;margin-top:14px}
+.create-box input[type="text"]{width:100%;box-sizing:border-box;font-family:inherit;font-size:15px;padding:10px 14px;border:2px solid #ccc;border-radius:8px;outline:none}
+.radio-row{display:flex;gap:10px;margin-top:6px}
+.radio-row label{flex:1;background:#f4f4f4;border:2px solid transparent;border-radius:10px;padding:12px 14px;cursor:pointer;text-align:center;font-size:14px;color:#333;margin:0;display:block}
+.radio-row label.checked{border-color:#3b82c4;background:rgba(59,130,196,.1)}
+.radio-row input{display:none}
+.create-actions{display:flex;gap:10px;margin-top:22px}
+.create-actions button{flex:1;font-family:inherit;font-size:15px;padding:12px;border:none;border-radius:10px;cursor:pointer;font-weight:bold}
+.create-actions .cancel{background:#eee;color:#333}
+.create-actions .create{background:#2a9d3f;color:#fff}
+#loadingScreen{display:none;position:fixed;inset:0;background:#111;z-index:300;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+#loadingScreen.show{display:flex}
+.loading-hourglass{font-size:80px;animation:spin 2s linear infinite}
+@keyframes spin{0%{transform:rotate(0)}50%{transform:rotate(180deg)}100%{transform:rotate(360deg)}}
+.loading-text{margin-top:30px;font-size:32px;letter-spacing:8px;font-weight:bold}
+#game{position:relative;width:100%;height:100%;overflow:hidden;background:#87CEEB}
+#world{position:absolute;inset:0}
+#ground{position:fixed;bottom:0;left:0;width:100%;height:60px;background:#7a7a7a;border-top:4px solid #4a4a4a;z-index:1}
+#player{position:absolute;bottom:60px;left:100px;width:60px;height:60px;background:url('zorn.png') center/contain no-repeat,#e63946;z-index:3;transition:transform .25s;border-radius:0}
+#hud{position:fixed;top:0;left:0;z-index:10;display:flex;gap:2px;padding:6px}
+.icon{width:50px;height:50px;background-size:contain;background-repeat:no-repeat;background-position:center;cursor:pointer}
+#iconPower{background-image:url('PowerButton.png')}
+#iconChat{background-image:url('Chat.png');position:relative}
+.unread-dot{position:absolute;top:-2px;right:-2px;width:16px;height:16px;background:#fff;border:2px solid #3b82c4;border-radius:50%;display:none;box-shadow:0 0 0 1px #fff}
+.unread-dot.show{display:block}
+#powerMenu{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;align-items:center;justify-content:center}
+#powerMenu.show{display:flex}
+.power-box{background:#fff;border-radius:14px;padding:24px 26px;width:360px;text-align:center}
+.power-box h3{margin:0 0 14px;font-size:22px;color:#2c2c2c}
+#playersPanel{width:100%;background:#f4f4f4;border-radius:10px;padding:10px;margin-bottom:14px;box-sizing:border-box}
+#playersPanel h4{margin:0 0 8px;font-size:14px;color:#2c2c2c;text-align:center}
+#playersList{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto}
+.player-row{display:flex;align-items:center;gap:8px;font-size:14px;color:#222;padding:6px 8px;border-radius:8px;background:#fff}
+.player-row .mini-avatar{width:26px;height:26px;border-radius:0;background-size:cover;background-color:#3b82c4;flex-shrink:0}
+.player-row.me{background:rgba(42,157,63,.15)}
+.power-box button{display:block;width:100%;font-family:inherit;font-size:15px;padding:12px;border:none;border-radius:8px;background:#3b82c4;color:#fff;cursor:pointer;margin-top:8px}
+#chatWindow{display:none;position:fixed;bottom:20px;right:20px;width:320px;height:380px;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.4);z-index:140;flex-direction:column;overflow:hidden}
+#chatWindow.show{display:flex}
+.chat-head{background:#3b82c4;color:#fff;padding:10px 14px;font-size:15px;display:flex;justify-content:space-between}
+.chat-head span{cursor:pointer;font-weight:bold}
+.chat-body{flex:1;padding:12px;overflow-y:auto;font-size:13px;color:#333;background:#f7f7f7}
+.chat-input{display:flex;border-top:1px solid #ddd}
+.chat-input input{flex:1;border:none;padding:10px;font-family:inherit;font-size:13px;outline:none}
+.chat-input button{border:none;background:#3b82c4;color:#fff;padding:0 16px;cursor:pointer;font-family:inherit}
+.other-player{position:absolute;width:60px;height:60px;z-index:2}
+.other-player .sprite{position:absolute;inset:0;background:url('zorn.png') center/contain no-repeat,#e63946;border-radius:0}
+.other-player .player-name{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:13px;font-weight:bold;color:#000;white-space:nowrap;text-shadow:0 0 4px #fff,0 0 4px #fff;pointer-events:none}
+.other-player .player-message{position:absolute;top:-50px;left:50%;transform:translateX(-50%);background:#fff;color:#000;font-size:12px;font-weight:bold;padding:4px 8px;border-radius:6px;max-width:200px;word-wrap:break-word;white-space:normal;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.3);pointer-events:none;opacity:0;transition:opacity 0.3s}
+.other-player .player-message.show{opacity:1}
+</style></head><body>
+
+<audio id="sndJump" src="jump.mp3" preload="auto"></audio>
+<audio id="sndMenu" src="bg%20music.mp3" preload="auto" loop></audio>
+
+<div id="loginScreen">
+  <h1 class="login-title" data-t="welcome">Welcome to Zorn!</h1>
+  <div class="login-box"><hr>
+    <div class="panels">
+      <div class="panel">
+        <h2 data-t="login">Log in</h2>
+        <label data-t="username">Username</label><input id="loginUsername" autocomplete="off">
+        <label data-t="password">Password</label><input id="loginPassword" type="password" autocomplete="off">
+        <div class="checkbox-row"><input type="checkbox" id="rememberMe"><label for="rememberMe" data-t="remember">Remember Me</label></div>
+        <button class="btn" id="loginBtn" disabled data-t="login">Log in</button>
+        <div class="error-msg" id="loginError"></div>
+        <div class="forgot" id="forgotLink" data-t="forgot">Forgot your password?</div>
+      </div>
+      <div class="panel">
+        <h2 data-t="register">Register</h2>
+        <label data-t="name">Name</label><input id="regName" autocomplete="off">
+        <label data-t="username">Username</label><input id="regUsername" autocomplete="off">
+        <label data-t="password">Password</label><input id="regPassword" type="password" autocomplete="off">
+        <button class="btn" id="registerBtn" disabled data-t="register">Register</button>
+        <div class="error-msg" id="registerError"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mainMenu">
+  <div id="userBadge"><div class="avatar" id="menuAvatar"></div><span id="menuUser">guest</span></div>
+  <div id="accountMenu">
+    <button id="btnProfile" data-t="profile">👤 Profile</button>
+    <button id="btnLogoutMenu" class="danger" data-t="logout">⏻ Log out</button>
+  </div>
+  <h1 class="menu-title">ZORN</h1>
+  <div class="menu-buttons">
+    <button class="menu-btn" id="btnPlay">▶ <span data-t="play">Play</span></button>
+    <button class="menu-btn" id="btnFriends">👥 <span data-t="friends">Friends</span></button>
+    <button class="menu-btn" id="btnCatalog">👒 <span data-t="catalog">Catalog</span></button>
+    <button class="menu-btn" id="btnWorkshop">⚒ <span data-t="workshop">Workshop</span></button>
+  </div>
+  <div class="menu-hint" data-t="hint">More to come soon</div>
+  <div id="cornerBtns">
+    <div class="corner-btn" id="btnSettingsCorner" title="Settings">⚙</div>
+    <div class="corner-btn" id="btnLangCorner" title="Language">🏳️</div>
+  </div>
+  <div id="langMenu"><h4 data-t="chooseLang">Choose language</h4><div id="langList"></div></div>
+</div>
+
+<div id="mpScreen">
+  <div class="mp-header">
+    <button class="mp-back" id="mpBack">← Back</button>
+    <h2 class="mp-title">SERVERS</h2>
+    <button class="mp-create" id="mpCreateBtn">+</button>
+  </div>
+  <input class="mp-search" id="mpSearch" placeholder="Search by name...">
+  <div class="mp-list" id="mpList"></div>
+</div>
+
+<div id="createModal"><div class="create-box">
+  <h3>CREATE SERVER</h3>
+  <label>Server name</label>
+  <input type="text" id="createName" placeholder="Enter server name" maxlength="30" autocomplete="off">
+  <label>Server type</label>
+  <div class="radio-row">
+    <label id="lblPublic" class="checked"><input type="radio" name="serverType" value="public" checked><span>🌐 Public</span></label>
+    <label id="lblPrivate"><input type="radio" name="serverType" value="private"><span>🔒 Private</span></label>
+  </div>
+  <div class="create-actions">
+    <button class="cancel" id="createCancel">Cancel</button>
+    <button class="create" id="createConfirm">Create</button>
+  </div>
+</div></div>
+
+<div id="editModal"><div class="create-box">
+  <h3>SERVER INFO</h3>
+  <div id="editInfo" style="background:#f4f4f4;border-radius:10px;padding:14px;font-size:14px;color:#333;margin-bottom:16px"></div>
+  <div class="create-actions">
+    <button class="cancel" id="editClose">Close</button>
+    <button class="create" id="editShutdown" style="background:#c43b3b">Shut down</button>
+  </div>
+</div></div>
+
+<div id="loadingScreen">
+  <div class="loading-hourglass">⏳</div>
+  <div class="loading-text">LOADING</div>
+</div>
+
+<div id="profileScreen"><div class="profile-container">
+  <div class="profile-header">
+    <div class="avatar-big" id="profileAvatar"></div>
+    <div class="profile-header-info">
+      <div class="profile-label" data-t="name">Name</div>
+      <input class="profile-name-input" id="profileName">
+      <div class="profile-username" id="profileUsername">@username</div>
+    </div>
+  </div>
+  <div class="profile-label" data-t="bio">Bio</div>
+  <textarea class="profile-bio" id="profileBio"></textarea>
+  <div class="profile-actions">
+    <button class="back" id="btnProfileBack" data-t="back">Back</button>
+    <button class="save" id="btnProfileSave" data-t="save">Save</button>
+  </div>
+</div></div>
+
+<div id="forgotModal"><div class="modal-box">
+  <h3 data-t="recovery">Password recovery</h3>
+  <label data-t="enterUsername">Enter your Username</label>
+  <input id="forgotUsername">
+  <div id="recoveryResult"></div>
+  <div class="modal-actions">
+    <button class="secondary" id="forgotCancel" data-t="cancel">Cancel</button>
+    <button class="primary" id="forgotSend" data-t="find">Find</button>
+  </div>
+</div></div>
+
+<div id="powerMenu"><div class="power-box">
+  <h3 data-t="pause">PAUSE</h3>
+  <div id="playersPanel"><h4 data-t="players">PLAYERS</h4><div id="playersList"></div></div>
+  <button id="powerBackToMenu">🏠 <span data-t="backToMenu">Back to menu</span></button>
+  <button id="powerClose">▶ <span data-t="continue">Continue</span></button>
+</div></div>
+
+<div id="chatWindow">
+  <div class="chat-head"><span data-t="chat">Chat</span> <span id="chatClose">×</span></div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-input"><input id="chatInput"><button id="chatSend" data-t="send">Send</button></div>
+</div>
+
+<div id="hud"><div id="iconPower" class="icon"></div><div id="iconChat" class="icon"></div></div>
+<div id="game"><div id="world"><div id="player"></div></div></div>
+<div id="ground"></div>
+<input type="file" id="avatarFileInput" accept="image/*" style="display:none">
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="zorn.js"></script>
+</body></html>
