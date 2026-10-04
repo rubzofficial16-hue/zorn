@@ -34,12 +34,8 @@ function loadLimit(){
       limitData.date = todayStr();
       limitData.usedSeconds = 0;
       saveLimit();
-      console.log('🌅 Новый день — лимит сброшен');
     }
-    console.log('📊 Лимит: ' + Math.floor(limitData.usedSeconds/60) + ' / 120 мин');
-  }catch(e){
-    limitData = { date: todayStr(), usedSeconds: 0 };
-  }
+  }catch(e){ limitData = { date: todayStr(), usedSeconds: 0 }; }
 }
 function saveLimit(){
   try{ fs.writeFileSync(LIMIT_FILE, JSON.stringify(limitData, null, 2), 'utf8'); }catch(e){}
@@ -61,13 +57,9 @@ setInterval(() => {
   limitData.usedSeconds += 1;
   saveLimit();
   const left = remainingSeconds();
-  if(left === WARNING_SECONDS){
-    io.emit('limitWarning', { secondsLeft: left });
-  }
+  if(left === WARNING_SECONDS) io.emit('limitWarning', { secondsLeft: left });
   if(left === 0){
-    io.emit('serverLimitReached', {
-      message: "The server's daily limit has been reached. Join us tomorrow!"
-    });
+    io.emit('serverLimitReached', { message: "The server's daily limit has been reached. Join us tomorrow!" });
     for(const id in rooms){ io.to(id).emit('roomClosed'); }
     for(const id in rooms){ delete rooms[id]; }
     io.emit('roomsUpdate', []);
@@ -90,8 +82,6 @@ function roomsList(){
 }
 
 io.on('connection', socket => {
-  console.log('🎮 Connected:', socket.id);
-
   socket.emit('limitStatus', {
     usedSeconds: limitData.usedSeconds,
     limitSeconds: LIMIT_SECONDS,
@@ -114,7 +104,6 @@ io.on('connection', socket => {
     socket.join(id);
     socket.emit('roomCreated', { id });
     io.emit('roomsUpdate', roomsList());
-    console.log('🏠 Комната создана: ' + id);
   });
 
   socket.on('getRooms', () => socket.emit('roomsUpdate', roomsList()));
