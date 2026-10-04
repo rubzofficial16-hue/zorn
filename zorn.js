@@ -9,7 +9,7 @@ let SERVER_URL = 'http://localhost:3000';
 
 if (window.location.hostname.includes('neocities.org')) {
     // ⚠️⚠️⚠️ ЗАМЕНИ НА СВОЮ ССЫЛКУ ИЗ CODESPACES! ⚠️⚠️⚠️
-    SERVER_URL = 'https://ТВОЙ-КОД-3000.app.github.dev';
+    SERVER_URL = 'https://obscure-guide-5vrj59v5wq54cv6qr-3000.app.github.dev';
 } else if (window.location.hostname.includes('github.dev')) {
     SERVER_URL = window.location.origin;
 } else if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
