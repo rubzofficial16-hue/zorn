@@ -1,0 +1,14 @@
+{
+  "name": "Zorn Server",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "postCreateCommand": "cd zorn-server && npm install",
+  "postStartCommand": "cd zorn-server && node server.js &",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Zorn",
+      "onAutoForward": "openBrowser",
+      "visibility": "public"
+    }
+  }
+}
